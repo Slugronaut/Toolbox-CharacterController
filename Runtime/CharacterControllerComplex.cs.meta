@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b2f6df9a8db24194294fbd326b10c31b
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - GroundDetector: {instanceID: 0}
+  - MovingFriction: {fileID: 13400000, guid: 54b88cf547a1a744dbdcf1f26c69641d, type: 2}
+  - StationaryFriction: {fileID: 13400000, guid: 12cfe0cdf70d8a8428cbbb6df0322d88, type: 2}
+  - FrictionSwapTargets: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

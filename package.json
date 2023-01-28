@@ -1,0 +1,21 @@
+{
+  "name": "com.postegames.charactercontroller",
+  "version": "1.0.0",
+  "displayName": "PEGGAME - Character Controller",
+  "description": "A physics-based first-person character controller.",
+  "unity": "2022.2",
+  "dependencies": {
+    "com.unity.inputsystem": "",
+    "com.postegames.gcci": ""
+  },
+  "keywords": [
+    "character controller",
+    "first person",
+    "first-person"
+  ],
+  "author": {
+    "name": "Sluggy",
+    "email": "jcsluggy@gmail.com",
+    "url": "http:/postegames.com"
+  }
+}
