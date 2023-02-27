@@ -392,7 +392,19 @@ namespace Toolbox.CharacterController
             {
                 //gravity pulls us to the surface of the slope
                 if (!JumpGravityLatch)
-                    grav = -GroundDetector.FloorNormal * Physics.gravity.magnitude;
+                {
+                    //BUG FIX 2/26/2023
+                    //so there is a problem here where we can grab the supposed floor normal
+                    //and it's actually completely horizontal due to touching a wall.
+                    //Since we are technically counted as grounded AND touching an actual floor
+                    //this still passes all of the above tests. We'll need an extra check here to make sure we
+                    //really don't have a 'floor normal' that is beyond the angle of the allowed max slope
+                    float angle = Vector3.Angle(Vector3.up, GroundDetector.FloorNormal);
+                    if(angle < GroundDetector.GroundSlopeLimit)
+                        grav = -GroundDetector.FloorNormal * Physics.gravity.magnitude;
+                }
+
+                    Debug.DrawRay(transform.position, grav, Color.yellow);
             }
             else JumpGravityLatch = false;
 
