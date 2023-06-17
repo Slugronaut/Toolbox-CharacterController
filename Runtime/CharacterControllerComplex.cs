@@ -404,7 +404,7 @@ namespace Toolbox.CharacterController
                         grav = -GroundDetector.FloorNormal * Physics.gravity.magnitude;
                 }
 
-                    Debug.DrawRay(transform.position, grav, Color.yellow);
+                //Debug.DrawRay(transform.position, grav, Color.yellow);
             }
             else JumpGravityLatch = false;
 
