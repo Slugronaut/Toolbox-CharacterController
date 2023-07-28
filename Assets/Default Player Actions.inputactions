@@ -76,6 +76,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleCursorOn",
+                    "type": "Button",
+                    "id": "10625d1d-3c10-407b-a294-b97a494664cd",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -452,6 +461,28 @@
                     "action": "Walk",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1bb05fdc-ea78-469e-9733-2d1be24c34c6",
+                    "path": "<Keyboard>/period",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "ToggleCursorOn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "50a1f0db-e216-4946-b326-435bf00935c1",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "ToggleCursorOn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -553,6 +584,15 @@
                     "name": "ToggleCursorMode",
                     "type": "Button",
                     "id": "f561f630-5aa5-4a7d-9088-68e00ac8020c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleCursorOff",
+                    "type": "Button",
+                    "id": "aa6ff17a-44fa-4946-8de8-76f84c0e20b4",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -997,6 +1037,28 @@
                     "processors": "",
                     "groups": "Gamepad",
                     "action": "ToggleCursorMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ea0186ad-4403-410c-8f46-6c5d2e67d830",
+                    "path": "<Keyboard>/period",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "ToggleCursorOff",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "93989640-71f8-4620-bf0b-67a7d473c20e",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "ToggleCursorOff",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
