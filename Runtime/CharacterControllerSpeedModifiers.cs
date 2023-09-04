@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static Toolbox.CharacterController.ICharacterController;
+using static Peg.CharacterController.ICharacterController;
 
-namespace Toolbox.CharacterController
+namespace Peg.CharacterController
 {
     [RequireComponent(typeof(RigidbodyGroundedDetector))]
     [RequireComponent(typeof(ICharacterController))]

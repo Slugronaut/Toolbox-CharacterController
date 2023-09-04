@@ -1,8 +1,8 @@
-using Toolbox.GCCI;
+using Peg.GCCI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Toolbox.CharacterController
+namespace Peg.CharacterController
 {
     [RequireComponent(typeof(Rigidbody))]
     public class CameraAim : MonoBehaviour, IAimer

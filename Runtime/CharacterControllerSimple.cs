@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
-using Toolbox.GCCI;
+using Peg.GCCI;
 using System;
-using static Toolbox.CharacterController.ICharacterController;
+using static Peg.CharacterController.ICharacterController;
 
-namespace Toolbox.CharacterController
+namespace Peg.CharacterController
 {
     /// <summary>
     ///     

@@ -1,18 +1,19 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
-using Toolbox.GCCI;
+using Peg.GCCI;
 using System;
-using static Toolbox.CharacterController.ICharacterController;
-using System.Runtime.InteropServices.WindowsRuntime;
+using static Peg.CharacterController.ICharacterController;
+using UnityEngine.Events;
 
-namespace Toolbox.CharacterController
+namespace Peg.CharacterController
 {
     /// <summary>
     /// TODO:
-    ///     -Aim smoothing and adjustmen
+    ///     -Aim smoothing and adjustment
     ///     -Wall Climbing
-    ///     
+    ///     -Remove 'ramping' when going up steep terrain
+    ///     -increase up/down speed when flying
     ///     
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
@@ -27,7 +28,7 @@ namespace Toolbox.CharacterController
         [Header("Move Stats")]
         [SerializeField]
         MovementMode _MoveMode;
-        public MovementMode MoveMode => _MoveMode;
+        public MovementMode MoveMode { get => _MoveMode; set => _MoveMode = value; }
         public float Acceleration = 60;
         public float MaxSpeed = 4;
         public float FlyAcceleration = 30;
@@ -59,8 +60,16 @@ namespace Toolbox.CharacterController
         public bool GravityMatchesFloor = true;
         public bool GlueToFloor = true;
         public LayerMask GroundLayers;
+        [Tooltip("A raycast scan performed while moving to help glue to the floor.")]
         public float ScanLength = 0.5f;
+        [Tooltip("An additional scale multiplied to 'ScanLength' when moving upward. This is to help alleviate ramping when running up slopes.")]
+        public float UpwardScanFactor = 1.5f;
+        [Tooltip("Flag to disable the ability to fly up. Useful for when flying is used as a standin for swimming and a detector has determined the character is at the interface between water and air at the surface.")]
+        [SerializeField]
+        bool _DisableFlyingUp = true;
+        public bool DisableFlyingUp { get => _DisableFlyingUp; set => _DisableFlyingUp = value; }
 
+        public UnityEvent<ICharacterController, IJumper> OnJumpEvent;
 
 
         //private
@@ -73,6 +82,7 @@ namespace Toolbox.CharacterController
         float JumpPressTimer = 0;
         bool JumpedLastFrame;
         int StepsSinceLastGrounded;
+        bool PhysicsMaterialOverridden = false;
 
         //IMPORTANT NOTE: The first element in both of these arrays is simply there to make the math easier. It should never change!
         readonly float[] SpeedBonuses = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };      //10 bonuses plus sprinting
@@ -272,11 +282,33 @@ namespace Toolbox.CharacterController
         #endregion
 
 
+        #region Move Logic
+        /// <summary>
+        /// Can be used to overriden the material used by the collider of this controller. This override will remain
+        /// and cannot change due to the internal system until a value of null is passed to this method at which point
+        /// the standard internal materials will once again be used.
+        /// </summary>
+        /// <param name="mat"></param>
+        public void OverridePhysicsMaterial(PhysicMaterial mat)
+        {
+            if(mat == null)
+            {
+                PhysicsMaterialOverridden = false;
+                FrictionSwapTargets.sharedMaterial = StationaryFriction;
+                return;
+            }
+
+            PhysicsMaterialOverridden = true;
+            FrictionSwapTargets.sharedMaterial = mat;
+        }
+
         /// <summary>
         /// 
         /// </summary>
         void ApplyPhysicsMaterials()
         {
+            if (PhysicsMaterialOverridden) return;
+
             if (MoveMode == MovementMode.Walking)
             {
                 //adjust friction based on player input
@@ -316,7 +348,6 @@ namespace Toolbox.CharacterController
                         if (MoveMode == MovementMode.Flying)
                         {
                             Vector3 vel = Body.velocity;
-
                             if (Mathf.Abs(vel.y) > MaxFlySpeed)
                             {
                                 float flyDir = 0;
@@ -325,10 +356,17 @@ namespace Toolbox.CharacterController
 
                                 Body.velocity = new Vector3(Body.velocity.x, flyDir * MaxFlySpeed, Body.velocity.z);
                             }
+                            vel = Body.velocity;
+                            if (DisableFlyingUp && vel.y > 0)
+                            {
+                                vel.y = 0;
+                                Body.velocity = vel;
+                            }
                         }
 
                         if (MovementVelocity.sqrMagnitude > EffectiveMaxSpeed * EffectiveMaxSpeed)
                             Body.velocity = (MovementVelocity.normalized * EffectiveMaxSpeed) + GravityVelocity;
+
                         break;
                     }
                 case MaxSpeedLimitMethod.SubtractiveVelocity:
@@ -427,6 +465,7 @@ namespace Toolbox.CharacterController
                 GroundDetector.ResetGroundedTimer(); //ensures we don't count ourselves as having been grounded recently
                                                      //set the velocity directly so that moving up or down slopes does not affect our jump height
                 Body.velocity = new Vector3(Body.velocity.x, JumpForce, Body.velocity.z);
+                OnJumpEvent.Invoke(this, this);
             }
         }
 
@@ -435,6 +474,8 @@ namespace Toolbox.CharacterController
         /// </summary>
         void ApplyFly()
         {
+            if (DisableFlyingUp && JumpPressTimer > 0)
+                return;
             var impulse = FlyAcceleration * JumpPressTimer * Vector3.up;
             Body.AddForce(impulse, ForceMode.Acceleration);
         }
@@ -445,10 +486,21 @@ namespace Toolbox.CharacterController
         /// <returns></returns>
         bool GluedToFloor()
         {
+            //HACK ALERT: This is directly removing y-velocity in the event that we've 'ramped' off a steep slope
+            //and are now airborn due to momentum but really shouldn't be because we never jumped.
+            if (!JumpedLastFrame && !IsJumping && Body.velocity.y > 0)
+            {
+                var vel = Body.velocity;
+                vel.y = 0;
+                Body.velocity = vel;
+
+            }
+
             if (StepsSinceLastGrounded > 1)
                 return false;
 
-            if (!Physics.Raycast(Body.position + Vector3.up, Vector3.down, out RaycastHit hitInfo, 1 + ScanLength, GroundLayers, QueryTriggerInteraction.Ignore))
+            float scanLen = ScanLength * Body.velocity.y > 1 ? UpwardScanFactor : 1;
+            if (!Physics.Raycast(Body.position + Vector3.up, Vector3.down, out RaycastHit hitInfo, 1 + scanLen, GroundLayers, QueryTriggerInteraction.Ignore))
                 return false;
 
             //check to see if on steep slope
@@ -460,6 +512,8 @@ namespace Toolbox.CharacterController
             float dot = Vector3.Dot(Body.velocity, hitInfo.normal);
             if (dot > 0)
                 Body.velocity = (Body.velocity - hitInfo.normal * dot).normalized * speed;
+
+
             return true;
         }
 
@@ -468,12 +522,18 @@ namespace Toolbox.CharacterController
         /// </summary>
         private void FixedUpdate()
         {
-            if (GroundDetector.IsGrounded) JumpInc = 0;
+            if (GroundDetector.IsGrounded)
+            {
+                JumpInc = 0;
+            }
             if (Jumping && GroundDetector.IsGrounded)
             {
                 if (JumpedLastFrame)
                     JumpedLastFrame = false;
-                else Jumping = false;
+                else
+                {
+                    Jumping = false;
+                }
             }
 
             ApplyPhysicsMaterials();
@@ -496,6 +556,8 @@ namespace Toolbox.CharacterController
             }
 
         }
+
+        #endregion
 
     }
 }

@@ -1,7 +1,8 @@
-using Toolbox.GCCI;
+using Peg.GCCI;
 using UnityEngine;
+using UnityEngine.Events;
 
-namespace Toolbox.CharacterController
+namespace Peg.CharacterController
 {
     [RequireComponent(typeof(Rigidbody))]
     public class RigidbodyGroundedDetector : MonoBehaviour, IGroundedState
@@ -12,10 +13,21 @@ namespace Toolbox.CharacterController
         public float GroundSlopeLimit = 65f;
         [Tooltip("How long can we go without the CharacterControler reporting a grounded state before we are truely considered to no longer be grounded")]
         public float GroundedDelayTime = 0.2f;
+        [Tooltip("An extra scaling factor to the grounded delay time for triggering the OnLandedEvent. Helps prevent triggering when walking over bumpy terrain at high speeds.")]
+        public float GroundedEventDelayScale = 1.0f;
+        [Tooltip("When airborn, the OnStopSlidingEvent is triggered if.")]
+        public bool AirbornEndsSlide = true;
+        public float MinYVelForSlide = -3;
         #endregion
 
 
+        public UnityEvent<IGroundedState> OnStartSlidingEvent;
+        public UnityEvent<IGroundedState> OnStopSlidingEvent;
+        public UnityEvent<IGroundedState> OnLandedEvent;
+
+
         #region Private Fields
+        Rigidbody Body;
         Collider Floor;
         Collider Slope;
         readonly ContactPoint[] Contacts = new ContactPoint[6];
@@ -38,12 +50,14 @@ namespace Toolbox.CharacterController
                 return !HasBeenGrounded && GetComponent<Rigidbody>().velocity.y < 0;
             }
         }
+        public bool IsSliding { get; private set; }
         #endregion
 
         private void Awake()
         {
             //precalculate the y-component of a vector that is the max allowed slope from vector3.up
             SlopeAngleDot = (Quaternion.AngleAxis(GroundSlopeLimit, Vector3.forward) * Vector3.up).y;
+            Body = GetComponent<Rigidbody>();
         }
 
         /// <summary>
@@ -59,8 +73,13 @@ namespace Toolbox.CharacterController
                 float angle = Vector3.Angle(Vector3.up, FloorNormal);
                 if (angle < 90)
                 {
+                    if (Slope == null && Floor == null && (Time.time - LastGroundedTime) > GroundedDelayTime * GroundedEventDelayScale)
+                        OnLandedEvent.Invoke(this);
+
                     if (angle < GroundSlopeLimit)
                     {
+                        IsSliding = false;
+                        OnStopSlidingEvent.Invoke(this);
                         //floors always take priority, return now
                         Floor = collision.collider;
                         Slope = null;
@@ -73,6 +92,11 @@ namespace Toolbox.CharacterController
                         ////any other contacts that would count as a floor
                         Floor = null;
                         Slope = collision.collider;
+                        if (!IsSliding && Body.velocity.y < MinYVelForSlide)
+                        {
+                            IsSliding = true;
+                            OnStartSlidingEvent.Invoke(this);
+                        }
                     }
                 }
             }
@@ -84,7 +108,20 @@ namespace Toolbox.CharacterController
         /// <param name="collision"></param>
         private void OnCollisionExit(Collision collision)
         {
-            if (collision.collider == Slope || collision.collider == Floor)
+            if(collision.collider == Slope)
+            {
+                if ((!HasBeenGrounded && AirbornEndsSlide) ||
+                    Body.velocity.y > MinYVelForSlide &&
+                    IsSliding)
+                {
+                    IsSliding = false;
+                    OnStopSlidingEvent.Invoke(this);
+                }
+                Floor = null;
+                Slope = null;
+                LastGroundedTime = Time.time;
+            }
+            else if(collision.collider == Floor)
             {
                 Floor = null;
                 Slope = null;

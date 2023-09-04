@@ -1,5 +1,5 @@
 
-namespace Toolbox.CharacterController
+namespace Peg.CharacterController
 {
     public interface ICharacterController
     {
