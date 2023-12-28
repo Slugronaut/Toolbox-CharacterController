@@ -79,7 +79,7 @@ namespace Peg.CharacterController
         bool JumpGravityLatch;
         int JumpInc;
         bool Jumping;
-        float JumpPressTimer = 0;
+        double JumpPressTimer = 0;
         bool JumpedLastFrame;
         int StepsSinceLastGrounded;
         bool PhysicsMaterialOverridden = false;
@@ -134,7 +134,7 @@ namespace Peg.CharacterController
                 {
                     if (value)
                     {
-                        JumpPressTimer = Time.time;
+                        JumpPressTimer = Time.timeAsDouble;
                         if (GroundDetector.HasBeenGrounded)
                             JumpGravityLatch = true;
                     }
@@ -188,7 +188,7 @@ namespace Peg.CharacterController
             {
                 if (value.isPressed)
                 {
-                    JumpPressTimer = Time.time;
+                    JumpPressTimer = Time.timeAsDouble;
                     if (GroundDetector.HasBeenGrounded)
                         JumpGravityLatch = true;
                 }
@@ -454,7 +454,7 @@ namespace Peg.CharacterController
         /// </summary>
         void ApplyJump()
         {
-            if ((Time.time - JumpPressTimer < JumpFudgeTime) &&
+            if ((Time.timeAsDouble - JumpPressTimer < JumpFudgeTime) &&
                 !GroundDetector.IsOnSlope &&
                 (GroundDetector.HasBeenGrounded || JumpInc < AirJumps))
             {
@@ -476,7 +476,7 @@ namespace Peg.CharacterController
         {
             if (DisableFlyingUp && JumpPressTimer > 0)
                 return;
-            var impulse = FlyAcceleration * JumpPressTimer * Vector3.up;
+            var impulse = FlyAcceleration * (float)JumpPressTimer * Vector3.up;
             Body.AddForce(impulse, ForceMode.Acceleration);
         }
 

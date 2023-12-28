@@ -36,9 +36,9 @@ namespace Peg.CharacterController
 
         #region Properties
         public bool IsGrounded => Floor != null || Slope != null;
-        public bool HasBeenGrounded => IsGrounded || (Time.time - LastGroundedTime) < GroundedDelayTime;
+        public bool HasBeenGrounded => IsGrounded || (Time.timeAsDouble - LastGroundedTime) < GroundedDelayTime;
         public bool IsOnSlope => Slope != null;
-        public float LastGroundedTime { get; private set; }
+        public double LastGroundedTime { get; private set; }
         public Vector3 FloorNormal { get => LastContact.normal; }
         public ContactPoint LastContact { get; private set; }
         public float SlopeAngleDot { get; private set; }
@@ -73,7 +73,7 @@ namespace Peg.CharacterController
                 float angle = Vector3.Angle(Vector3.up, FloorNormal);
                 if (angle < 90)
                 {
-                    if (Slope == null && Floor == null && (Time.time - LastGroundedTime) > GroundedDelayTime * GroundedEventDelayScale)
+                    if (Slope == null && Floor == null && (Time.timeAsDouble - LastGroundedTime) > GroundedDelayTime * GroundedEventDelayScale)
                         OnLandedEvent.Invoke(this);
 
                     if (angle < GroundSlopeLimit)
@@ -83,7 +83,7 @@ namespace Peg.CharacterController
                         //floors always take priority, return now
                         Floor = collision.collider;
                         Slope = null;
-                        LastGroundedTime = Time.time;
+                        LastGroundedTime = Time.timeAsDouble;
                         return;
                     }
                     else
@@ -119,13 +119,13 @@ namespace Peg.CharacterController
                 }
                 Floor = null;
                 Slope = null;
-                LastGroundedTime = Time.time;
+                LastGroundedTime = Time.timeAsDouble;
             }
             else if(collision.collider == Floor)
             {
                 Floor = null;
                 Slope = null;
-                LastGroundedTime = Time.time;
+                LastGroundedTime = Time.timeAsDouble;
             }
         }
 
