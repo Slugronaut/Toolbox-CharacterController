@@ -68,6 +68,7 @@ namespace Peg.CharacterController
         [SerializeField]
         bool _DisableFlyingUp = true;
         public bool DisableFlyingUp { get => _DisableFlyingUp; set => _DisableFlyingUp = value; }
+        public Rigidbody RigidbodyComp => throw new NotImplementedException();
 
         public UnityEvent<ICharacterController, IJumper> OnJumpEvent;
 

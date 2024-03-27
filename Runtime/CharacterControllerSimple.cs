@@ -48,9 +48,9 @@ namespace Peg.CharacterController
         public float EffectiveMaxSpeed => MaxSpeed * SpeedBonuses.Sum() * SpeedPenalties.Aggregate(1.0f, SpeedAccum);
         public Vector3 MovementVelocity => new(Body.velocity.x, 0, Body.velocity.z);
         public Vector3 GravityVelocity { get => new(0, Body.velocity.y, 0); set => Body.velocity = new Vector3(Body.velocity.x, value.y, Body.velocity.z); }
-        public MovementMode MoveMode => MovementMode.Walking;
+        public MovementMode MoveMode { get => MovementMode.Walking; set => throw new NotImplementedException(); }
         public MaxSpeedLimitMethod SpeedLimitMethod => MaxSpeedLimitMethod.DirectVelocitySet;
-
+        public Rigidbody RigidbodyComp => throw new NotImplementedException();
 
         /// <summary>
         /// 
